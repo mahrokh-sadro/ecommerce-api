@@ -1,0 +1,13 @@
+bin
+obj
+/vs
+.vs
+.vscode
+/ps_api/appsettings.json
+/WebApplication1/WebApplication1.csproj.user
+/WebApplication1/Logs
+/WebApplication1/bin
+/WebApplication1/obj
+/TodoListAPI.Tests/obj
+/TodoListAPI.Tests/bin
+/WebApplication1/internal-nlog.txt

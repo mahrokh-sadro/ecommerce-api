@@ -19,7 +19,7 @@ namespace WebApplication1.Controllers
 
         [HttpGet]
         [Route("products")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brands,string? types)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brands,string? types,string? sort)
         {
             try
             {
@@ -35,6 +35,25 @@ namespace WebApplication1.Controllers
                     query=query.Where(p=>types.Contains(p.Type));   
                 }
 
+                if (!string.IsNullOrWhiteSpace(sort))
+                {
+                    if (sort.Equals("priceAsc"))
+                    {
+                        query = query.OrderBy(p => p.Price);
+                    }
+                    else if (sort.Equals("priceDes"))
+                    {
+                        query = query.OrderByDescending(p => p.Price);
+                    }
+                    else if (sort.Equals("nameAsc"))
+                    {
+                        query = query.OrderBy(p => p.Name);
+                    }
+                    else if (sort.Equals("nameDsc"))
+                    {
+                        query = query.OrderByDescending(p => p.Name);
+                    }
+                }
                 var products = await query.ToListAsync();
                 return products;
 

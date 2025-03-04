@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using WebApplication1.Models;
-//using WebApplication1.Services;
 using AppContext = WebApplication1.Models.AppContext;
-
+using WebApplication1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +30,15 @@ builder.Services.AddCors(options =>
         });
 });
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSingleton<ConnectionMultiplexer>(config =>
+{
+    var connString = builder.Configuration.GetConnectionString("Redis");
+    if (connString != null) throw new Exception("Redis connectioon string is empty.") ;
+    var configuration = ConfigurationOptions.Parse(connString, true);
+    return ConnectionMultiplexer.Connect(configuration);
+});
+
+
 
 var app = builder.Build();
 

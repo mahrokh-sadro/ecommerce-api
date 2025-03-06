@@ -1,11 +1,11 @@
-﻿using WebApplication1.Models;
+﻿using WebApplication1.Views;
 
 namespace WebApplication1.Interfaces
 {
     public interface ICartService
     {
         Task<ShoppingCart?> GetCart(string key);
-        Task<ShoppingCart?> SetCart(ShoppingCart cart);
-        Task<ShoppingCart?> DeleteCart(string key);
+        Task<bool> SetCart(ShoppingCart cart);
+        Task<bool> DeleteCart(string key);
     }
 }

@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using WebApplication1.Models;
-using AppContext = WebApplication1.Models.AppContext;
 using WebApplication1.Services;
+using WebApplication1.Interfaces;
+using WebApplication1.Views;
+
+using AppContext = WebApplication1.Models.AppContext;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddControllers();
 
@@ -16,7 +17,6 @@ builder.Services.AddDbContext<AppContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     )
 );
-//builder.Services.AddScoped<IProductService, ProductService>();
 
 // Enable CORS
 builder.Services.AddCors(options =>
@@ -30,21 +30,22 @@ builder.Services.AddCors(options =>
         });
 });
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSingleton<ConnectionMultiplexer>(config =>
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var connString = builder.Configuration.GetConnectionString("Redis");
-    if (connString != null) throw new Exception("Redis connectioon string is empty.") ;
-    var configuration = ConfigurationOptions.Parse(connString, true);
-    return ConnectionMultiplexer.Connect(configuration);
+    if (string.IsNullOrEmpty(connString))
+    {
+        throw new Exception("Redis connection string is empty.");
+    }
+    return ConnectionMultiplexer.Connect(connString);
 });
 
-
+builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-
-// Use CORS before controllers
 app.UseCors("AllowAngularApp");
 app.MapControllers();
 

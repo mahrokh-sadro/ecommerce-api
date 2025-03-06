@@ -35,7 +35,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SetCart([FromBody] ShoppingCart cart)
+        public async Task<IActionResult> SetCart([FromBody] ShoppingCartView cart)
         {
             if (cart == null || string.IsNullOrEmpty(cart.Id))
                 return BadRequest(new { message = "Invalid cart data" });

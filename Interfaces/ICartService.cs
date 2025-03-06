@@ -4,8 +4,8 @@ namespace WebApplication1.Interfaces
 {
     public interface ICartService
     {
-        Task<ShoppingCart?> GetCart(string key);
-        Task<bool> SetCart(ShoppingCart cart);
+        Task<ShoppingCartView?> GetCart(string key);
+        Task<bool> SetCart(ShoppingCartView cart);
         Task<bool> DeleteCart(string key);
     }
 }

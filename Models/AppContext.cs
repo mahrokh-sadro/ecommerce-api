@@ -18,17 +18,14 @@ public partial class AppContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
-            .UseCollation("latin1_swedish_ci")
-            .HasCharSet("latin1");
+            .UseCollation("utf8mb4_general_ci")
+            .HasCharSet("utf8mb4");
 
         modelBuilder.Entity<CartItem>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity
-                .ToTable("CartItem")
-                .HasCharSet("utf8")
-                .UseCollation("utf8_general_ci");
+            entity.ToTable("CartItem");
 
             entity.Property(e => e.Id).HasColumnType("int(11)");
             entity.Property(e => e.ProductId).HasColumnType("int(11)");
@@ -40,18 +37,15 @@ public partial class AppContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity
-                .ToTable("Product")
-                .HasCharSet("utf8")
-                .UseCollation("utf8_general_ci");
+            entity.ToTable("Product");
 
             entity.Property(e => e.Id).HasColumnType("int(11)");
-            entity.Property(e => e.Brand).HasMaxLength(45);
-            entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.Image).HasMaxLength(256);
-            entity.Property(e => e.Name).HasMaxLength(256);
-            entity.Property(e => e.Price).HasPrecision(10);
-            entity.Property(e => e.Type).HasMaxLength(45);
+            entity.Property(e => e.Brand).HasMaxLength(100);
+            entity.Property(e => e.Description).HasColumnType("text");
+            entity.Property(e => e.Image).HasMaxLength(500);
+            entity.Property(e => e.Name).HasMaxLength(255);
+            entity.Property(e => e.Price).HasPrecision(10, 2);
+            entity.Property(e => e.Type).HasMaxLength(100);
         });
 
         OnModelCreatingPartial(modelBuilder);

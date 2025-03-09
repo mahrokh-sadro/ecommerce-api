@@ -18,9 +18,16 @@ namespace WebApplication1.Controllers
         [Route("test")]
         public async Task<IActionResult> Test()
         {
-            var cart = await _cartService.GetCart("id");
-            if (cart == null) return NotFound(new { message = "Cart not found" });
-            return Ok(cart);
+            try
+            {
+                var cart = await _cartService.GetCart("id");
+                if (cart == null) return NotFound(new { message = "Cart not found" });
+                return Ok(cart);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "CartController->Test"+e);
+            }
         
         }
 
@@ -29,27 +36,46 @@ namespace WebApplication1.Controllers
         [Route("{id}")]
         public async Task<IActionResult> GetCart(string id)
         {
-            var cart = await _cartService.GetCart(id);
-            if (cart == null) return NotFound(new { message = "Cart not found" });
-            return Ok(cart);
+            try
+            {
+                var cart = await _cartService.GetCart(id);
+                if (cart == null) return NotFound(new { message = "Cart not found" });
+                return Ok(cart);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "CartController->GetCart" + e);
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> SetCart([FromBody] ShoppingCartView cart)
         {
-            if (cart == null || string.IsNullOrEmpty(cart.Id))
-                return BadRequest(new { message = "Invalid cart data" });
+            try
+            {
+                if (cart == null || string.IsNullOrEmpty(cart.Id))
+                    return BadRequest(new { message = "Invalid cart data" });
 
-            var updatedCart = await _cartService.SetCart(cart);
-            return updatedCart != null ? Ok(updatedCart) : StatusCode(500, "Error saving cart");
+                var updatedCart = await _cartService.SetCart(cart);
+                return  Ok(updatedCart);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "CartController->SetCart" + e);
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCart(string id)
         {
-            //var success = await _cartService.DeleteCart(id);
-            //return success ? Ok(new { message = "Cart deleted" }) : NotFound(new { message = "Cart not found" });
-            return null;
+            try
+            {
+                return Ok(await _cartService.DeleteCart(id));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "CartController->DeleteCart" + e);
+            }
         }
     }
 }

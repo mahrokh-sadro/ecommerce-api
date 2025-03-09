@@ -18,10 +18,9 @@ namespace WebApplication1.Services
             _dbContext = dbContext;
         }
 
-        public async Task<ShoppingCartView?> DeleteCart(string key)
+        public async Task<bool> DeleteCart(string key)
         {
-            //return await _redisDb.KeyDeleteAsync(key);
-            return null;
+            return await _redisDb.KeyDeleteAsync(key);
         }
 
         //public async Task<ShoppingCart?> GetCart(string key)

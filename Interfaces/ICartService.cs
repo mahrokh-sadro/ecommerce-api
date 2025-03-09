@@ -6,6 +6,6 @@ namespace WebApplication1.Interfaces
     {
         Task<ShoppingCartView?> GetCart(string key);
         Task<ShoppingCartView?> SetCart(ShoppingCartView cart);
-        Task<ShoppingCartView?> DeleteCart(string key);
+        Task<bool> DeleteCart(string key);
     }
 }

@@ -18,9 +18,10 @@ namespace WebApplication1.Services
             _dbContext = dbContext;
         }
 
-        public async Task<bool> DeleteCart(string key)
+        public async Task<ShoppingCartView?> DeleteCart(string key)
         {
-            return await _redisDb.KeyDeleteAsync(key);
+            //return await _redisDb.KeyDeleteAsync(key);
+            return null;
         }
 
         //public async Task<ShoppingCart?> GetCart(string key)
@@ -37,10 +38,19 @@ namespace WebApplication1.Services
         //}
         // Method to save cart data to Redis
         // Set cart data in Redis
-        public async Task<bool> SetCart(ShoppingCartView cart)
+        public async Task<ShoppingCartView?> SetCart(ShoppingCartView cart)
         {
             var jsonData = JsonSerializer.Serialize(cart);
-            return await _redisDb.StringSetAsync($"cart:{cart.Id}", jsonData);
+            bool success= await _redisDb.StringSetAsync($"cart:{cart.Id}", jsonData);
+
+            if (success)
+            {
+                return cart;
+            }
+            else
+            {
+                throw new Exception("Failed to save cart to redit");
+            }
         }
 
         public async Task<ShoppingCartView?> GetCart(string cartId)

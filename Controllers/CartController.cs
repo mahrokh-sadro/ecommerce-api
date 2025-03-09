@@ -47,8 +47,9 @@ namespace WebApplication1.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCart(string id)
         {
-            var success = await _cartService.DeleteCart(id);
-            return success ? Ok(new { message = "Cart deleted" }) : NotFound(new { message = "Cart not found" });
+            //var success = await _cartService.DeleteCart(id);
+            //return success ? Ok(new { message = "Cart deleted" }) : NotFound(new { message = "Cart not found" });
+            return null;
         }
     }
 }

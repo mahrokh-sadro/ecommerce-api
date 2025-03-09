@@ -1,1 +1,1 @@
-dotnet ef dbcontext scaffold "server=sql5.freesqldatabase.com;userid=sql5765437;password=4t3Xy87dCq;database=sql5765437;default command timeout=600;" Pomelo.EntityFrameworkCore.MySql --output-dir Models --context AppContext --force --no-onconfiguring
+dotnet ef dbcontext scaffold "server=mysql-ski.alwaysdata.net;userid=ski_user;password=umumumumumn%%%;database=ski_db;default command timeout=600;" Pomelo.EntityFrameworkCore.MySql --output-dir Models --context AppContext --force --no-onconfiguring

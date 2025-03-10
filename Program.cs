@@ -4,8 +4,9 @@ using WebApplication1.Models;
 using WebApplication1.Services;
 using WebApplication1.Interfaces;
 using WebApplication1.Views;
-
 using AppContext = WebApplication1.Models.AppContext;
+using Microsoft.AspNetCore.Identity;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,8 @@ builder.Services.AddDbContext<AppContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     )
 );
+
+
 
 // Enable CORS
 builder.Services.AddCors(options =>
@@ -42,11 +45,23 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 });
 
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddAuthorization();
+//Add Identity services
+builder.Services.AddIdentityApiEndpoints<AppUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppContext>();
+
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAngularApp");
+
+// Add authentication & authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
+app.MapGroup("api").MapIdentityApi<AppUser>(); // api/login
 
 app.Run();

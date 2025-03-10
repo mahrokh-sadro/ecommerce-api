@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1.Models;
 
-public partial class AppContext : DbContext
+public partial class AppContext : IdentityDbContext<AppUser>
 {
     public AppContext(DbContextOptions<AppContext> options)
         : base(options)
@@ -17,6 +18,8 @@ public partial class AppContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder); // This is required for Identity tables!
+
         modelBuilder
             .UseCollation("utf8mb4_general_ci")
             .HasCharSet("utf8mb4");

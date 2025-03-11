@@ -91,7 +91,7 @@ namespace WebApplication1.Controllers
 
         [Authorize]
         [HttpPost("address")]
-        public async Task<ActionResult<Address>> CreateOrUpdateAddress(Address address)
+        public async Task<ActionResult<Address>> AddOrUpdateAddress(Address address)
         {
             if (User.Identity?.IsAuthenticated == false)
                 return NoContent();
@@ -108,13 +108,17 @@ namespace WebApplication1.Controllers
 
             if (user.Address == null)
             {
-                //user.Address = null;
-                user.Address.Line1 = "";
-                user.Address.Line2 = "";
-                user.Address.City = "";
-                user.Address.Country = "";
-                user.Address.State = "";
-                user.Address.PostalCode = "";
+                user.Address = new Address
+                {
+                    Line1 = address.Line1,
+                    Line2 = address.Line2,
+                    City = address.City,
+                    Country = address.Country,
+                    State = address.State,
+                    PostalCode = address.PostalCode
+                };
+
+                _dbContext.Address.Add(user.Address);
             }
             else
             {
@@ -126,7 +130,7 @@ namespace WebApplication1.Controllers
                 user.Address.State= address.State;
                 user.Address.PostalCode= address.PostalCode;
             }
-
+            await _dbContext.SaveChangesAsync();
             var result = await _signInManager.UserManager.UpdateAsync(user);
 
             if (!result.Succeeded) return BadRequest("Problem updating user address");

@@ -29,7 +29,9 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:4200") // Allow Angular app
                   .AllowAnyMethod()
-                  .AllowAnyHeader();
+                  .AllowAnyHeader()
+                  .AllowCredentials()
+                  ;
         });
 });
 builder.Services.AddEndpointsApiExplorer();

@@ -13,8 +13,9 @@ public partial class AppContext : IdentityDbContext<AppUser>
     }
 
     public virtual DbSet<CartItem> CartItems { get; set; }
-
     public virtual DbSet<Product> Products { get; set; }
+    public virtual DbSet<Address> Address { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

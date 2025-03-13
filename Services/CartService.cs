@@ -23,20 +23,6 @@ namespace WebApplication1.Services
             return await _redisDb.KeyDeleteAsync(key);
         }
 
-        //public async Task<ShoppingCart?> GetCart(string key)
-        //{
-        //    var data = await _redisDb.StringGetAsync(key);
-        //    if (data.IsNullOrEmpty) return null;
-        //    return JsonSerializer.Deserialize<ShoppingCart?>(data!);
-        //}
-
-        //public async Task<ShoppingCart?> SetCart(ShoppingCart cart)
-        //{
-        //    bool isSet = await _database.StringSetAsync(cart.Id, JsonSerializer.Serialize(cart), TimeSpan.FromDays(30));
-        //    return isSet ? cart : null;
-        //}
-        // Method to save cart data to Redis
-        // Set cart data in Redis
         public async Task<ShoppingCartView?> SetCart(ShoppingCartView cart)
         {
             var jsonData = JsonSerializer.Serialize(cart);
@@ -59,7 +45,7 @@ namespace WebApplication1.Services
 
             var cart = JsonSerializer.Deserialize<ShoppingCartView>(cartData!);
 
-            // Fetch product details from MySQL
+            // fetch product details from MySQL
             if (cart != null)
             {
                 foreach (var item in cart.CartItems)

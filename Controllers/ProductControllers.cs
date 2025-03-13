@@ -1,62 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.Design;
 using WebApplication1.Models;
-//using WebApplication1.Services;
-using AppContext = WebApplication1.Models.AppContext;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     [ApiController]
-    [Route("api/[Controller]")]
+    [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
-        private readonly AppContext _dbContext;
-        public ProductController(AppContext appContext)
+        private readonly IProductService _productService;
+
+        public ProductController(IProductService productService)
         {
-            _dbContext = appContext;
+            _productService = productService;
         }
 
-        [HttpGet]
-        [Route("products")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brands,string? types,string? sort)
+        // Get all products with optional filters
+        [HttpGet("products")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brands, string? types, string? sort)
         {
             try
             {
-                var query=_dbContext.Products.AsQueryable();
-                if (!string.IsNullOrWhiteSpace(brands))
-                {
-                    var brandList=brands.Split(',').Select(b=>b.Trim()).ToList();   
-                    query=query.Where(p=>brandList.Contains(p.Brand));
-                }
-
-                if (!string.IsNullOrWhiteSpace(types)) { 
-                    var typeList=types.Split(',').Select(t=>t.Trim()).ToList(); 
-                    query=query.Where(p=>types.Contains(p.Type));   
-                }
-
-                if (!string.IsNullOrWhiteSpace(sort))
-                {
-                    if (sort.Equals("priceAsc"))
-                    {
-                        query = query.OrderBy(p => p.Price);
-                    }
-                    else if (sort.Equals("priceDes"))
-                    {
-                        query = query.OrderByDescending(p => p.Price);
-                    }
-                    else if (sort.Equals("nameAsc"))
-                    {
-                        query = query.OrderBy(p => p.Name);
-                    }
-                    else if (sort.Equals("nameDsc"))
-                    {
-                        query = query.OrderByDescending(p => p.Name);
-                    }
-                }
-                var products = await query.ToListAsync();
-                return products;
-
+                var products = await _productService.GetProducts(brands, types, sort);
+                return Ok(products);
             }
             catch (Exception e)
             {
@@ -64,78 +30,85 @@ namespace WebApplication1.Controllers
             }
         }
 
+        // Get a single product by its id
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await _dbContext.Products.FindAsync(id);
+            var product = await _productService.GetProductById(id);
             if (product == null)
             {
                 return NotFound();
             }
-            return product;
+            return Ok(product);
         }
 
-        //add product
-        //[FromBody]
+        // Create a new product
         [HttpPost]
-        public async Task<ActionResult<Product>> CreateProduct(Product product)
+        public async Task<ActionResult<Product>> CreateProduct([FromBody] Product product)
         {
-            _dbContext.Products.Add(product);
-            await _dbContext.SaveChangesAsync();
-            return product;
-        }
-
-        //update 
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult> UpdateProduct(int id, Product product)
-        {
-            if (product.Id != id || ProductExists(id)) {
-                return BadRequest("Update Failed");
+            try
+            {
+                var newProduct = await _productService.CreateProduct(product);
+                return CreatedAtAction(nameof(GetProduct), new { id = newProduct.Id }, newProduct);
             }
-
-            _dbContext.Entry(product).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
-
-            return Ok();
-
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
 
-        public bool ProductExists(int id)
+        // Update an existing product
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product product)
         {
-            return _dbContext.Products.Any(p => p.Id == id);
+            var updated = await _productService.UpdateProduct(id, product);
+            if (updated)
+            {
+                return NoContent();
+            }
+            return BadRequest("Update failed");
         }
-        //delete
-        //[HttpDelete("{id:int}")]
-        //public async Task<ActionResult> DeleteProduct(int id)
-        //{
-        //    var product = _dbContext.Products.FindAsync(id);
-        //    if (product == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    _dbContext.Products.Remove(await product);
-        //    await _dbContext.SaveChangesAsync();
-        //}
 
-
-
-        //getproductbyid
-        public async Task<Product> GetProductById(int id)
+        // Delete a product by its id
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            return await _dbContext.Products.FindAsync(id); 
+            var deleted = await _productService.DeleteProduct(id);
+            if (deleted)
+            {
+                return NoContent();
+            }
+            return NotFound();
         }
 
+        // Get all distinct brands
         [HttpGet("brands")]
-        public async Task<ActionResult<IEnumerable<String>>> GetBrands()
+        public async Task<ActionResult<IEnumerable<string>>> GetBrands()
         {
-            var brands=await _dbContext.Products.Select( p => p.Brand).Distinct().ToListAsync();
-            return brands;
+            try
+            {
+                var brands = await _productService.GetBrands();
+                return Ok(brands);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
+
+        // Get all distinct product types
         [HttpGet("types")]
-        public async Task<ActionResult<IEnumerable<String>>> GetTypes()
+        public async Task<ActionResult<IEnumerable<string>>> GetTypes()
         {
-            var types = await _dbContext.Products.Select( p => p.Type).Distinct().ToListAsync();
-            return types;
+            try
+            {
+                var types = await _productService.GetTypes();
+                return Ok(types);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
     }
 }

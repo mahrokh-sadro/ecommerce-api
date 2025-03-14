@@ -56,18 +56,20 @@ namespace WebApplication1.Services
             var options = new PaymentIntentCreateOptions
             {
                 Amount = (long)((amount + shippingPrice) * 100), 
-                Currency = "cad", 
+                Currency = "usd", 
                 PaymentMethodTypes = new List<string> { "card" },
             };
 
             PaymentIntent paymentIntent;
             var service = new PaymentIntentService();
+            cart.DeliveryMethodId = 1;
 
             if (string.IsNullOrEmpty(cart.PaymentIntentId))
             {
                 paymentIntent = await service.CreateAsync(options);
                 cart.PaymentIntentId = paymentIntent.Id;
                 cart.ClientSecret = paymentIntent.ClientSecret;
+                cart.DeliveryMethodId = 1;
             }
             else
             {

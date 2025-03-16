@@ -62,7 +62,7 @@ namespace WebApplication1.Services
 
             PaymentIntent paymentIntent;
             var service = new PaymentIntentService();
-            cart.DeliveryMethodId = 1;
+            //cart.DeliveryMethodId = 1;
 
             if (string.IsNullOrEmpty(cart.PaymentIntentId))
             {
@@ -89,7 +89,7 @@ namespace WebApplication1.Services
 
         public async Task<IEnumerable<DeliveryMethod>> GetDeliveryMethods()
         {
-            return await _dbContext.DeliveryMethods.ToListAsync();
+            return await _dbContext.DeliveryMethods.OrderBy(m=>m.ShippingPrice).ToListAsync();
         }
 
 

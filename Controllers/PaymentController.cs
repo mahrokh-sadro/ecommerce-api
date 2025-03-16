@@ -38,6 +38,7 @@ namespace WebApplication1.Controllers
             }
         }
 
+        [HttpGet("delivery-methods")]
         public async Task<ActionResult<IEnumerable<DeliveryMethod>>> GetDeliveryMethods()
         {
             try

@@ -157,7 +157,12 @@ namespace WebApplication1.Controllers
                 return NotFound("User email not found in claims.");
 
             // Fetch user by email
-            var user = await _signInManager.UserManager.FindByEmailAsync(email);
+            //var user = await _signInManager.UserManager.FindByEmailAsync(email);
+            // Fetch user by email, including the Address
+            var user = await _signInManager.UserManager.Users
+                .Include(u => u.Address)  // Ensure Address is loaded
+                .FirstOrDefaultAsync(u => u.Email == email);
+
 
             if (user == null)
                 return NotFound("User not found.");

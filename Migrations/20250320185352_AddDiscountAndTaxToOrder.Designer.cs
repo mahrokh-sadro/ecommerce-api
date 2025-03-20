@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Models;
 using AppContext = WebApplication1.Models.AppContext;
@@ -12,9 +13,11 @@ using AppContext = WebApplication1.Models.AppContext;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(AppContext))]
-    partial class AppContextModelSnapshot : ModelSnapshot
+    [Migration("20250320185352_AddDiscountAndTaxToOrder")]
+    partial class AddDiscountAndTaxToOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,11 +282,7 @@ namespace WebApplication1.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("OrderId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("OrderId1")
+                    b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
@@ -295,7 +294,7 @@ namespace WebApplication1.Migrations
                     b.HasKey("Id")
                         .HasName("PRIMARY");
 
-                    b.HasIndex("OrderId1");
+                    b.HasIndex("OrderId");
 
                     b.ToTable("CartItem", (string)null);
                 });
@@ -339,7 +338,7 @@ namespace WebApplication1.Migrations
                     b.Property<int>("DeliveryMethodId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("Discount")
+                    b.Property<decimal>("Discount")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("Email")
@@ -359,13 +358,13 @@ namespace WebApplication1.Migrations
                     b.Property<int>("ShippingAddressId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("Subtotal")
+                    b.Property<decimal>("Subtotal")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<decimal?>("TaxAmount")
+                    b.Property<decimal>("taxAmount")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<decimal?>("Total")
+                    b.Property<decimal>("total")
                         .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
@@ -501,7 +500,7 @@ namespace WebApplication1.Migrations
                 {
                     b.HasOne("WebApplication1.Models.Order", null)
                         .WithMany("CartItems")
-                        .HasForeignKey("OrderId1");
+                        .HasForeignKey("OrderId");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Order", b =>

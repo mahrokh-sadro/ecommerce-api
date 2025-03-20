@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 using System.Security.Claims;
 using WebApplication1.Interfaces;
 using WebApplication1.Models;
 using WebApplication1.Services;
 using WebApplication1.Views;
+using Address = WebApplication1.Models.Address;
 using AppContext = WebApplication1.Models.AppContext;
 
 namespace WebApplication1.Controllers
@@ -90,23 +92,38 @@ namespace WebApplication1.Controllers
                 if (product == null) continue;
                 subtotal += (decimal)product.Price * item.Quantity;
             }
-
+            decimal discount = 0m;
             Order order = new Order(billingDetails.Email, billingDetails.PaymentIntentId)
             {
                 ShippingAddressId = address.Id, 
                 DeliveryMethodId = (int)billingDetails.deliveryMethodId, 
                 PaymentSummaryId = payment.Id, 
                 Subtotal = subtotal,
-                CartItems = cartItems.Select(item => new CartItem
-                {
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity
-                }).ToList(),
+                TaxAmount=taxRate* subtotal,
+                Total=subtotal*(1+ taxRate) - discount,
+                //CartItems = cartItems.Select(item => new CartItem
+                //{
+                //    ProductId = item.ProductId,
+                //    Quantity = item.Quantity
+                //}).ToList(),
 
                 Discount = 0
             };
-            _dbContext.Order.AddAsync(order);
+            await _dbContext.Order.AddAsync(order);
             await _dbContext.SaveChangesAsync();
+
+            foreach(var item in cartItems)
+            {
+                var cartItem=new CartItem();
+                cartItem.ProductId= item.ProductId;
+                cartItem.Quantity= item.Quantity;
+                cartItem.OrderId= order.Id;
+
+                await _dbContext.CartItems.AddAsync(cartItem);
+                await _dbContext.SaveChangesAsync();    s
+            }
+
+
 
             return true;
         }

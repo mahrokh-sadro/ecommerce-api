@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.Design;
-using System.Net;
 using System.Security.Claims;
 using WebApplication1.Models;
 using WebApplication1.Views;

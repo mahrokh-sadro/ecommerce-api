@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Models;
 using AppContext = WebApplication1.Models.AppContext;
@@ -12,9 +13,11 @@ using AppContext = WebApplication1.Models.AppContext;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(AppContext))]
-    partial class AppContextModelSnapshot : ModelSnapshot
+    [Migration("20250319164132_AddPaymentSummaryToOrder")]
+    partial class AddPaymentSummaryToOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,9 +282,6 @@ namespace WebApplication1.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int(11)");
 
@@ -290,8 +290,6 @@ namespace WebApplication1.Migrations
 
                     b.HasKey("Id")
                         .HasName("PRIMARY");
-
-                    b.HasIndex("OrderId");
 
                     b.ToTable("CartItem", (string)null);
                 });
@@ -322,45 +320,6 @@ namespace WebApplication1.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DeliveryMethods");
-                });
-
-            modelBuilder.Entity("WebApplication1.Models.Order", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DeliveryMethodId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("PaymentIntentId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("PaymentSummaryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ShippingAddressId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Order");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.PaymentSummary", b =>
@@ -485,18 +444,6 @@ namespace WebApplication1.Migrations
                         .HasForeignKey("AddressId");
 
                     b.Navigation("Address");
-                });
-
-            modelBuilder.Entity("WebApplication1.Models.CartItem", b =>
-                {
-                    b.HasOne("WebApplication1.Models.Order", null)
-                        .WithMany("CartItems")
-                        .HasForeignKey("OrderId");
-                });
-
-            modelBuilder.Entity("WebApplication1.Models.Order", b =>
-                {
-                    b.Navigation("CartItems");
                 });
 #pragma warning restore 612, 618
         }

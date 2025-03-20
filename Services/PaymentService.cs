@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Stripe;
-using Stripe.Climate;
-using Stripe.V2;
 using WebApplication1.Interfaces;
 using WebApplication1.Models;
 using WebApplication1.Views;

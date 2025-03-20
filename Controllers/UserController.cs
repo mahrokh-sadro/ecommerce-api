@@ -39,6 +39,7 @@ namespace WebApplication1.Controllers
                 {
                     newAddress = new Address 
                     {
+                        Name=user.Address.Name,
                         Line1 = user.Address.Line1,
                         Line2 = user.Address.Line2,
                         City = user.Address.City,
@@ -109,13 +110,15 @@ namespace WebApplication1.Controllers
                 return NotFound("User email not found in claims.");
 
             // Fetch user by email
-            var user = await _signInManager.UserManager.FindByEmailAsync(email);
-
+            var user = await _signInManager.UserManager.Users
+                 .Include(u => u.Address)  
+                 .FirstOrDefaultAsync(u => u.Email == email);
 
             if (user.Address == null)
             {
                 user.Address = new Address
                 {
+                    Name = address.Name,    
                     Line1 = address.Line1,
                     Line2 = address.Line2,
                     City = address.City,

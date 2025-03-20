@@ -16,6 +16,8 @@ public partial class AppContext : IdentityDbContext<AppUser>
     public virtual DbSet<Product> Products { get; set; }
     public virtual DbSet<Address> Address { get; set; }
     public virtual DbSet<DeliveryMethod> DeliveryMethods { get; set; }
+    public virtual DbSet<PaymentSummary> PaymentSummary { get; set; }
+    public virtual DbSet<Order> Order { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,7 +36,7 @@ public partial class AppContext : IdentityDbContext<AppUser>
             entity.Property(e => e.Id).HasColumnType("int(11)");
             entity.Property(e => e.ProductId).HasColumnType("int(11)");
             entity.Property(e => e.Quantity).HasColumnType("int(11)");
-            entity.Property(e => e.ShoppingCartId).HasMaxLength(255);
+            //entity.Property(e => e.ShoppingCartId).HasMaxLength(255);
         });
 
         modelBuilder.Entity<Product>(entity =>

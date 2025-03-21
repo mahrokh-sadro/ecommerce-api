@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Models;
 using AppContext = WebApplication1.Models.AppContext;
@@ -12,9 +13,11 @@ using AppContext = WebApplication1.Models.AppContext;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(AppContext))]
-    partial class AppContextModelSnapshot : ModelSnapshot
+    [Migration("20250321013642_UpdateOrderTableWithUserIdd")]
+    partial class UpdateOrderTableWithUserIdd
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -332,7 +335,7 @@ namespace WebApplication1.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DeliveryMethodId")
+                    b.Property<int?>("DeliveryMethoddId")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Discount")
@@ -344,10 +347,10 @@ namespace WebApplication1.Migrations
                     b.Property<string>("PaymentIntentId")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("PaymentSummaryId")
+                    b.Property<int?>("PaymentSummaryyId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ShippingAddressId")
+                    b.Property<int?>("ShippingAddressId")
                         .HasColumnType("int");
 
                     b.Property<string>("ShippingEmail")
@@ -366,6 +369,12 @@ namespace WebApplication1.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeliveryMethoddId");
+
+                    b.HasIndex("PaymentSummaryyId");
+
+                    b.HasIndex("ShippingAddressId");
 
                     b.ToTable("Order");
                 });
@@ -501,6 +510,27 @@ namespace WebApplication1.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Order", b =>
+                {
+                    b.HasOne("WebApplication1.Models.DeliveryMethod", "DeliveryMethodd")
+                        .WithMany()
+                        .HasForeignKey("DeliveryMethoddId");
+
+                    b.HasOne("WebApplication1.Models.PaymentSummary", "PaymentSummaryy")
+                        .WithMany()
+                        .HasForeignKey("PaymentSummaryyId");
+
+                    b.HasOne("WebApplication1.Models.Address", "ShippingAddress")
+                        .WithMany()
+                        .HasForeignKey("ShippingAddressId");
+
+                    b.Navigation("DeliveryMethodd");
+
+                    b.Navigation("PaymentSummaryy");
+
+                    b.Navigation("ShippingAddress");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Order", b =>

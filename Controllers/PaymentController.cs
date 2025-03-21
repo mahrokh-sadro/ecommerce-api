@@ -65,69 +65,68 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost("order")]
-        public async Task<ActionResult<Boolean>> CreateOrder([FromBody] OrderRequest request)
+        public async Task<ActionResult<bool>> CreateOrder([FromBody] OrderRequest request)
         {
+            UserInfo userInfo = await GetUserInfo();
+            if (userInfo == null)
+                return BadRequest("User address not found.");
 
-            var address = await GetUserInfo();
-            //ge t the adrs from user
             var payment = request.Payment;
             var billingDetails = request.BillingDetails;
             var cartItems = request.CartItems;
-           
-            //create payment
-            _dbContext.PaymentSummary.Add(payment);
+
+            await _dbContext.PaymentSummary.AddAsync(payment);
             await _dbContext.SaveChangesAsync();
 
-            
-            //get the id
+            var deliveryMethod = await _dbContext.DeliveryMethods
+                .FirstOrDefaultAsync(d => d.Id == billingDetails.deliveryMethodId);
 
-            //get delivery method info
-            var deliveryMethod= _dbContext.DeliveryMethods.Where(d=>d.Id==billingDetails.deliveryMethodId).FirstOrDefault();
+            if (deliveryMethod == null)
+                return BadRequest("Invalid delivery method.");
 
             decimal subtotal = 0m;
             decimal taxRate = 0.13m;
+            decimal discount = 0m;
+
             foreach (var item in cartItems)
             {
                 var product = await _productService.GetProductById(item.ProductId);
                 if (product == null) continue;
                 subtotal += (decimal)product.Price * item.Quantity;
             }
-            decimal discount = 0m;
-            Order order = new Order(billingDetails.Email, billingDetails.PaymentIntentId)
-            {
-                ShippingAddressId = address.Id, 
-                DeliveryMethodId = (int)billingDetails.deliveryMethodId, 
-                PaymentSummaryId = payment.Id, 
-                Subtotal = subtotal,
-                TaxAmount=taxRate* subtotal,
-                Total=subtotal*(1+ taxRate) - discount,
-                //CartItems = cartItems.Select(item => new CartItem
-                //{
-                //    ProductId = item.ProductId,
-                //    Quantity = item.Quantity
-                //}).ToList(),
 
-                Discount = 0
+            // create order
+            var order = new Order()
+            {
+                ShippingEmail= billingDetails.Email,
+                PaymentIntentId= billingDetails.PaymentIntentId,
+                ShippingAddressId = userInfo.Address.Id,
+                UserId = userInfo.Id,
+                DeliveryMethodId = deliveryMethod.Id,
+                PaymentSummaryId = payment.Id,
+                Subtotal = subtotal,
+                TaxAmount = taxRate * subtotal,
+                Total = subtotal * (1 + taxRate) - discount,
+                Discount = discount
             };
+
             await _dbContext.Order.AddAsync(order);
             await _dbContext.SaveChangesAsync();
 
-            foreach(var item in cartItems)
+            var cartItemsToAdd = cartItems.Select(item => new CartItem
             {
-                var cartItem=new CartItem();
-                cartItem.ProductId= item.ProductId;
-                cartItem.Quantity= item.Quantity;
-                cartItem.OrderId= order.Id;
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                OrderId = order.Id 
+            }).ToList();
 
-                await _dbContext.CartItems.AddAsync(cartItem);
-                await _dbContext.SaveChangesAsync();    s
-            }
+            await _dbContext.CartItems.AddRangeAsync(cartItemsToAdd);
+            await _dbContext.SaveChangesAsync(); 
 
-
-
-            return true;
+            return Ok(true);
         }
-        public async Task<Address?> GetUserInfo()
+
+        public async Task<UserInfo> GetUserInfo()
         {
             if (User.Identity?.IsAuthenticated == false)
                 return null;
@@ -139,7 +138,7 @@ namespace WebApplication1.Controllers
                 return null;
 
             var user = await _signInManager.UserManager.Users
-                .Include(u => u.Address)  
+                .Include(u => u.Address)
                 .FirstOrDefaultAsync(u => u.Email == email);
 
 
@@ -147,7 +146,11 @@ namespace WebApplication1.Controllers
                 return null;
 
 
-            return user?.Address;
+            return new UserInfo
+            {
+                Id = user.Id,
+                Address = user.Address
+            };
         }
 
     }

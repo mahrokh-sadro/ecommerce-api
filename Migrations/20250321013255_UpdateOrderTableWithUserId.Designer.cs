@@ -13,8 +13,8 @@ using AppContext = WebApplication1.Models.AppContext;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(AppContext))]
-    [Migration("20250320212200_UpdateOrderTableV2")]
-    partial class UpdateOrderTableV2
+    [Migration("20250321013255_UpdateOrderTableWithUserId")]
+    partial class UpdateOrderTableWithUserId
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -282,7 +282,7 @@ namespace WebApplication1.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("OrderId")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
@@ -335,28 +335,26 @@ namespace WebApplication1.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DeliveryMethodId")
+                    b.Property<int?>("DeliveryMethodId")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Discount")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("PaymentIntentId")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("PaymentSummaryId")
+                    b.Property<int?>("PaymentSummaryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ShippingAddressId")
+                    b.Property<int?>("ShippingAddressId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ShippingEmail")
+                        .HasColumnType("longtext");
 
                     b.Property<decimal?>("Subtotal")
                         .HasColumnType("decimal(65,30)");
@@ -367,7 +365,16 @@ namespace WebApplication1.Migrations
                     b.Property<decimal?>("Total")
                         .HasColumnType("decimal(65,30)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("DeliveryMethodId");
+
+                    b.HasIndex("PaymentSummaryId");
+
+                    b.HasIndex("ShippingAddressId");
 
                     b.ToTable("Order");
                 });
@@ -500,7 +507,30 @@ namespace WebApplication1.Migrations
                 {
                     b.HasOne("WebApplication1.Models.Order", null)
                         .WithMany("CartItems")
-                        .HasForeignKey("OrderId");
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Order", b =>
+                {
+                    b.HasOne("WebApplication1.Models.DeliveryMethod", "DeliveryMethod")
+                        .WithMany()
+                        .HasForeignKey("DeliveryMethodId");
+
+                    b.HasOne("WebApplication1.Models.PaymentSummary", "PaymentSummary")
+                        .WithMany()
+                        .HasForeignKey("PaymentSummaryId");
+
+                    b.HasOne("WebApplication1.Models.Address", "ShippingAddress")
+                        .WithMany()
+                        .HasForeignKey("ShippingAddressId");
+
+                    b.Navigation("DeliveryMethod");
+
+                    b.Navigation("PaymentSummary");
+
+                    b.Navigation("ShippingAddress");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Order", b =>

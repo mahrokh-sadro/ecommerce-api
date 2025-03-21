@@ -13,8 +13,8 @@ using AppContext = WebApplication1.Models.AppContext;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(AppContext))]
-    [Migration("20250320212635_AddOrderIdToCartItem")]
-    partial class AddOrderIdToCartItem
+    [Migration("20250321014722_UpdateOrderTableWithUserIdddd")]
+    partial class UpdateOrderTableWithUserIdddd
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -282,11 +282,7 @@ namespace WebApplication1.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("OrderId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("OrderId1")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
@@ -298,7 +294,7 @@ namespace WebApplication1.Migrations
                     b.HasKey("Id")
                         .HasName("PRIMARY");
 
-                    b.HasIndex("OrderId1");
+                    b.HasIndex("OrderId");
 
                     b.ToTable("CartItem", (string)null);
                 });
@@ -345,15 +341,10 @@ namespace WebApplication1.Migrations
                     b.Property<decimal?>("Discount")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("PaymentIntentId")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("PaymentSummaryId")
@@ -361,6 +352,9 @@ namespace WebApplication1.Migrations
 
                     b.Property<int>("ShippingAddressId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ShippingEmail")
+                        .HasColumnType("longtext");
 
                     b.Property<decimal?>("Subtotal")
                         .HasColumnType("decimal(65,30)");
@@ -370,6 +364,9 @@ namespace WebApplication1.Migrations
 
                     b.Property<decimal?>("Total")
                         .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -504,7 +501,9 @@ namespace WebApplication1.Migrations
                 {
                     b.HasOne("WebApplication1.Models.Order", null)
                         .WithMany("CartItems")
-                        .HasForeignKey("OrderId1");
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Order", b =>

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
+using Stripe.Climate;
 using System.Security.Claims;
 using WebApplication1.Interfaces;
 using WebApplication1.Models;
@@ -9,6 +10,7 @@ using WebApplication1.Services;
 using WebApplication1.Views;
 using Address = WebApplication1.Models.Address;
 using AppContext = WebApplication1.Models.AppContext;
+using Order = WebApplication1.Models.Order;
 
 namespace WebApplication1.Controllers
 {
@@ -125,6 +127,33 @@ namespace WebApplication1.Controllers
 
             return Ok(true);
         }
+
+        [HttpGet("orders")]
+        public async Task<IActionResult> GetOrders()
+        {
+            if (User.Identity?.IsAuthenticated == false)
+                return null;
+
+            // Retrieve the email of the authenticated user from claims
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            if (string.IsNullOrEmpty(email))
+                return null;
+
+            var user = await _signInManager.UserManager.Users
+                .Include(u => u.Address)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+
+            if (user == null)
+                return null;
+
+            var orders=await _dbContext.Order.Where(o=>o.UserId == user.Id).ToListAsync();
+
+            return Ok(orders);
+        }
+
+
 
         public async Task<UserInfo> GetUserInfo()
         {

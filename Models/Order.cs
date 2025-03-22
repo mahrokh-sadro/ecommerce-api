@@ -12,7 +12,7 @@
         public int ShippingAddressId { get; set; }
         public int DeliveryMethodId { get; set; }
         public int PaymentSummaryId { get; set; }
-        public List<CartItem> CartItems { get; set; } = new List<CartItem>();
+        //public List<CartItem> CartItems { get; set; } = new List<CartItem>();
         public decimal? Subtotal { get; set; }
         public decimal? Discount { get; set; }
         public decimal? TaxAmount { get; set; }

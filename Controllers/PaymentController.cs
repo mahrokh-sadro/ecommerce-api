@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using Stripe;
 using Stripe.Climate;
 using System.Security.Claims;
@@ -119,7 +120,8 @@ namespace WebApplication1.Controllers
             {
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
-                OrderId = order.Id 
+                Image = item.Image,
+                OrderId = order.Id,
             }).ToList();
 
             await _dbContext.CartItems.AddRangeAsync(cartItemsToAdd);
@@ -149,11 +151,37 @@ namespace WebApplication1.Controllers
                 return null;
 
             var orders=await _dbContext.Order.Where(o=>o.UserId == user.Id).ToListAsync();
+            List<OrderView> orderList = new List<OrderView>();
+            foreach (var order in orders)
+            {
+                CartItem item = await _dbContext.CartItems.FirstOrDefaultAsync(i => i.OrderId == order.Id);
+                var obj = new OrderView(order,item.Image);
+                orderList.Add(obj);
+            }
 
-            return Ok(orders);
+            return Ok(orderList);
         }
 
+        [HttpGet("{orderId}")]
+        public async Task<IActionResult> GetOrder(int orderId)
+        {
+            var order = await _dbContext.Order.FirstOrDefaultAsync(o => o.Id == orderId);
+            if (order == null)
+            {
+                return NotFound("Order not found.");
+            }
+            var shippingAddress = await _dbContext.Address.FirstOrDefaultAsync(a => a.Id == order.Id);
+            var deliveryMethod = await _dbContext.DeliveryMethods.FirstOrDefaultAsync(d=>d.Id==order.DeliveryMethodId);
+            var items = await _dbContext.CartItems.Where(c => c.OrderId == order.Id).ToListAsync();
 
+            return Ok(new
+            {
+                order= order,
+                shippingAddress= shippingAddress,
+                deliveryMethod= deliveryMethod,
+                items= items
+            });
+        }
 
         public async Task<UserInfo> GetUserInfo()
         {

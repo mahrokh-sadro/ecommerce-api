@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Models;
 using AppContext = WebApplication1.Models.AppContext;
@@ -12,9 +13,11 @@ using AppContext = WebApplication1.Models.AppContext;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(AppContext))]
-    partial class AppContextModelSnapshot : ModelSnapshot
+    [Migration("20250322040910_AddImageFieldToCartItem1")]
+    partial class AddImageFieldToCartItem1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,6 +274,35 @@ namespace WebApplication1.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int(11)");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int(11)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int(11)");
+
+                    b.HasKey("Id")
+                        .HasName("PRIMARY");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("CartItem", (string)null);
+                });
+
             modelBuilder.Entity("WebApplication1.Models.DeliveryMethod", b =>
                 {
                     b.Property<int>("Id")
@@ -467,6 +499,20 @@ namespace WebApplication1.Migrations
                         .HasForeignKey("AddressId");
 
                     b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.CartItem", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Order", null)
+                        .WithMany("CartItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Order", b =>
+                {
+                    b.Navigation("CartItems");
                 });
 #pragma warning restore 612, 618
         }

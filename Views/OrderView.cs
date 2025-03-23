@@ -10,7 +10,7 @@ namespace WebApplication1.Views
         public decimal? Subtotal { get; set; }
         public decimal? Total { get; set; }
 
-        public string Image;
+        public string Image { get; set; }
 
         public OrderView(Order order,string image) { 
             Id = order.Id;

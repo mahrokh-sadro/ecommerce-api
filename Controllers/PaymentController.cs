@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
@@ -77,8 +78,10 @@ namespace WebApplication1.Controllers
             var payment = request.Payment;
             var billingDetails = request.BillingDetails;
             var cartItems = request.CartItems;
+            var ShippingAddress = request.ShippingAddress;
 
             await _dbContext.PaymentSummary.AddAsync(payment);
+            await _dbContext.Address.AddAsync(ShippingAddress);
             await _dbContext.SaveChangesAsync();
 
             var deliveryMethod = await _dbContext.DeliveryMethods
@@ -101,9 +104,9 @@ namespace WebApplication1.Controllers
             // create order
             var order = new Order()
             {
-                ShippingEmail= billingDetails.Email,
-                PaymentIntentId= billingDetails.PaymentIntentId,
-                ShippingAddressId = userInfo.Address.Id,
+                ShippingEmail= string.IsNullOrEmpty(billingDetails?.Email) ? userInfo.Email:billingDetails.Email,
+                PaymentIntentId = billingDetails.PaymentIntentId,
+                ShippingAddressId = ShippingAddress.Id,
                 UserId = userInfo.Id,
                 DeliveryMethodId = deliveryMethod.Id,
                 PaymentSummaryId = payment.Id,
@@ -170,7 +173,7 @@ namespace WebApplication1.Controllers
             {
                 return NotFound("Order not found.");
             }
-            var shippingAddress = await _dbContext.Address.FirstOrDefaultAsync(a => a.Id == order.Id);
+            var shippingAddress = await _dbContext.Address.FirstOrDefaultAsync(a => a.Id == order.ShippingAddressId);
             var deliveryMethod = await _dbContext.DeliveryMethods.FirstOrDefaultAsync(d=>d.Id==order.DeliveryMethodId);
             var items = await _dbContext.CartItems.Where(c => c.OrderId == order.Id).ToListAsync();
 
@@ -206,6 +209,7 @@ namespace WebApplication1.Controllers
             return new UserInfo
             {
                 Id = user.Id,
+                Email= user.Email,
                 Address = user.Address
             };
         }

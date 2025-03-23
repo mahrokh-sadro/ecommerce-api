@@ -7,5 +7,7 @@ namespace WebApplication1.Views
         public PaymentSummary Payment { get; set; } = null!;
         public BillingDetails BillingDetails { get; set; } = null!;
         public List<CartItem> CartItems { get; set; } = new();
+        public Address ShippingAddress { get; set; } = null!;
+
     }
 }

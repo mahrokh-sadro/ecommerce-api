@@ -69,7 +69,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost("order")]
-        public async Task<ActionResult<bool>> CreateOrder([FromBody] OrderRequest request)
+        public async Task<ActionResult<Object>> CreateOrder([FromBody] OrderRequest request)
         {
             UserInfo userInfo = await GetUserInfo();
             if (userInfo == null)
@@ -130,7 +130,11 @@ namespace WebApplication1.Controllers
             await _dbContext.CartItems.AddRangeAsync(cartItemsToAdd);
             await _dbContext.SaveChangesAsync(); 
 
-            return Ok(true);
+            return Ok(new
+            {
+                id=order.Id,
+                total=order.Total
+            });
         }
 
         [HttpGet("orders")]

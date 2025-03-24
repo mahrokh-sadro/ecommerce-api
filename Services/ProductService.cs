@@ -13,7 +13,7 @@ namespace WebApplication1.Services
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Product>> GetProducts(string? brands, string? types, string? sort)
+        public async Task<IEnumerable<Product>> GetProducts(string? brands, string? types, string? sort,string? searchTerm)
         {
             var query = _dbContext.Products.AsQueryable();
 
@@ -27,6 +27,11 @@ namespace WebApplication1.Services
             {
                 var typeList = types.Split(',').Select(t => t.Trim()).ToList();
                 query = query.Where(p => typeList.Contains(p.Type));
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(p => p.Name.ToLower().Contains(searchTerm));
             }
 
             query = sort switch

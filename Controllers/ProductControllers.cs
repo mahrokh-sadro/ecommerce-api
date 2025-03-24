@@ -17,11 +17,11 @@ namespace WebApplication1.Controllers
 
         // Get all products with optional filters
         [HttpGet("products")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brands, string? types, string? sort)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brands, string? types, string? sort, string? searchTerm)
         {
             try
             {
-                var products = await _productService.GetProducts(brands, types, sort);
+                var products = await _productService.GetProducts(brands, types, sort, searchTerm);
                 return Ok(products);
             }
             catch (Exception e)

@@ -10,9 +10,7 @@ namespace WebApplication1.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_CartItem_Order_OrderId",
-                table: "CartItem");
+            
 
             migrationBuilder.AlterColumn<int>(
                 name: "OrderId",

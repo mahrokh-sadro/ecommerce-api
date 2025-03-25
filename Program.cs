@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddConsole();
 
 builder.Services.AddControllers();
 
@@ -55,6 +56,7 @@ builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppContext>();
 
+builder.Logging.AddConsole();
 
 var app = builder.Build();
 

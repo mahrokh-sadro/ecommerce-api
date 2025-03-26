@@ -168,6 +168,7 @@ namespace WebApplication1.Controllers
             if (user == null)
                 return NotFound("User not found.");
 
+            //var role = User.FindFirstValue(ClaimTypes.Role);
 
             return Ok(new
             {
@@ -175,6 +176,7 @@ namespace WebApplication1.Controllers
                 user.LastName,
                 user.Email,
                 user.Address,
+                role= User.FindFirstValue(ClaimTypes.Role)
 
             });
         }

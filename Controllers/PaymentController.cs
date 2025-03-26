@@ -1,18 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 using Stripe;
-using Stripe.Climate;
 using System.Security.Claims;
 using WebApplication1.Interfaces;
 using WebApplication1.Models;
 using WebApplication1.Services;
 using WebApplication1.Views;
-using Address = WebApplication1.Models.Address;
 using AppContext = WebApplication1.Models.AppContext;
 using Order = WebApplication1.Models.Order;
+using Newtonsoft.Json;
 
 namespace WebApplication1.Controllers
 {
@@ -25,14 +22,17 @@ namespace WebApplication1.Controllers
         private readonly AppContext _dbContext;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IProductService _productService;
+        private readonly ILogger<PaymentController> _logger;
 
-        public PaymentController(IPaymentService paymentService, ICartService cartService, AppContext dbContext, SignInManager<AppUser> signInManager, IProductService productService)
+        public PaymentController(IPaymentService paymentService, ICartService cartService, AppContext dbContext, SignInManager<AppUser> signInManager, IProductService productService,
+            ILogger<PaymentController> logger)
         {
             _paymentService = paymentService;
             _cartService = cartService;
             _dbContext = dbContext;
             _signInManager = signInManager;
             _productService = productService;
+            _logger = logger;
         }
 
         // Add or update the payment intent
@@ -217,6 +217,66 @@ namespace WebApplication1.Controllers
                 Address = user.Address
             };
         }
+
+        [HttpPost("webhook")]
+        public async Task<IActionResult> StripeWebhookAsync()
+        {
+            var json = await new System.IO.StreamReader(Request.Body).ReadToEndAsync();
+            var stripeEvent = EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"],
+                "whsec_7c3c41430936344237fb4b64a481b0fa617d600a570a6258d4058cee3b1bb86f");
+            // Handle the event using if-else statements
+            if (stripeEvent.Type == "payment_intent.succeeded")
+            {
+                var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                _logger.LogInformation("PaymentIntent succeeded: {0}", paymentIntent.Id);
+                await UpdateOrderStatus(paymentIntent);
+            }
+            else if (stripeEvent.Type == "payment_intent.payment_failed")
+            {
+                var failedPaymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                _logger.LogInformation("PaymentIntent failed: {0}", failedPaymentIntent.Id);
+                await UpdateOrderStatus(failedPaymentIntent, "Failed");
+            }
+            // Add more event types as needed (e.g., for refunds, cancellations, etc.)
+            else
+            {
+                _logger.LogWarning("Unhandled event type: {0}", stripeEvent.Type);
+            }
+
+            return Ok();
+        }
+
+        private async Task UpdateOrderStatus(PaymentIntent paymentIntent, string status = "Succeeded")
+        {
+            // Find your order using the paymentIntentId (you should have stored this in your order record)
+            var order = await _dbContext.Order.FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntent.Id);
+
+            if (order != null)
+            {
+                //order.Status = status;  // Update the order status (e.g., "Succeeded", "Failed", etc.)
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Event> StripeWebhook()
+        {
+            var json = await new System.IO.StreamReader(Request.Body).ReadToEndAsync();
+            var stripeSignature = Request.Headers["Stripe-Signature"];
+
+            var secret = "whsec_7c3c41430936344237fb4b64a481b0fa617d600a570a6258d4058cee3b1bb86f"; // Your secret from Stripe Dashboard
+
+            try
+            {
+                var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, secret);
+                return stripeEvent;
+            }
+            catch (StripeException e)
+            {
+                _logger.LogError("Webhook signature verification failed: {0}", e.Message);
+                return null;
+            }
+        }
+
 
     }
 }

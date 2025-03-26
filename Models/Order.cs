@@ -18,7 +18,7 @@
         public decimal? TaxAmount { get; set; }
         public decimal? Total { get; set; }
 
-        //public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public string Status { get; set; } = "Pending";
 
         public string? PaymentIntentId { get; set; } 
 

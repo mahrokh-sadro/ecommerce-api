@@ -13,8 +13,8 @@ using AppContext = WebApplication1.Models.AppContext;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(AppContext))]
-    [Migration("20250325184240_RemoveForeignKeyConstraints4")]
-    partial class RemoveForeignKeyConstraints4
+    [Migration("20250326033519_AddDescriptionToProduct")]
+    partial class AddDescriptionToProduct
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -356,6 +356,9 @@ namespace WebApplication1.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ShippingEmail")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
                         .HasColumnType("longtext");
 
                     b.Property<decimal?>("Subtotal")

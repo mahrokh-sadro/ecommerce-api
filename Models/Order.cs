@@ -17,15 +17,8 @@
         public decimal? Discount { get; set; }
         public decimal? TaxAmount { get; set; }
         public decimal? Total { get; set; }
-
-        public string Status { get; set; } = "Pending";
-
+        public string? Status { get; set; } = "Pending";
         public string? PaymentIntentId { get; set; } 
 
-        //public Order(string email,string paymentIntentId)
-        //{
-        //    ShippingEmail = email;  
-        //    PaymentIntentId = paymentIntentId;
-        //}
     }
 }

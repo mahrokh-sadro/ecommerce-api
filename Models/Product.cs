@@ -18,4 +18,8 @@ public partial class Product
     public string? Type { get; set; }
 
     public string? Brand { get; set; }
+
+    public bool? IsFeatured { get; set; }
+
+    public bool? IsBestSeller { get; set; }
 }

@@ -11,6 +11,8 @@ namespace WebApplication1.Views
         public decimal? Total { get; set; }
 
         public string Image { get; set; }
+        public string? Status { get; set; }
+
 
         public OrderView(Order order,string image) { 
             Id = order.Id;
@@ -19,6 +21,7 @@ namespace WebApplication1.Views
             Subtotal = order.Subtotal;
             Total = order.Total;
             Image = image;
+            Status = order.Status;
         }  
     }
 }

@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using System.Security.Claims;
 using WebApplication1.Interfaces;
 using WebApplication1.Models;
 using WebApplication1.Services;
+using WebApplication1.SignalR;
 using WebApplication1.Views;
 using AppContext = WebApplication1.Models.AppContext;
 using Order = WebApplication1.Models.Order;
-using Newtonsoft.Json;
 
 namespace WebApplication1.Controllers
 {
@@ -23,9 +24,10 @@ namespace WebApplication1.Controllers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IProductService _productService;
         private readonly ILogger<PaymentController> _logger;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public PaymentController(IPaymentService paymentService, ICartService cartService, AppContext dbContext, SignInManager<AppUser> signInManager, IProductService productService,
-            ILogger<PaymentController> logger)
+            ILogger<PaymentController> logger, IHubContext<NotificationHub> hubContext)
         {
             _paymentService = paymentService;
             _cartService = cartService;
@@ -33,6 +35,7 @@ namespace WebApplication1.Controllers
             _signInManager = signInManager;
             _productService = productService;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         // Add or update the payment intent
@@ -128,13 +131,41 @@ namespace WebApplication1.Controllers
             }).ToList();
 
             await _dbContext.CartItems.AddRangeAsync(cartItemsToAdd);
-            await _dbContext.SaveChangesAsync(); 
+            await _dbContext.SaveChangesAsync();
+
+            await UpdateOrderStatusFromStripe(order.PaymentIntentId);
 
             return Ok(new
             {
                 id=order.Id,
                 total=order.Total
             });
+        }
+        private async Task UpdateOrderStatusFromStripe(string paymentIntentId)
+        {
+            if (string.IsNullOrEmpty(paymentIntentId)) return;
+
+            var service = new PaymentIntentService();
+            var paymentIntent = await service.GetAsync(paymentIntentId, options: null, 
+                requestOptions: new RequestOptions { ApiKey = "sk_test_51R2FT8GfAmxmqqaW6FfZCQQSjfoetCxvm8CYcYaMrOrstSS7W8FsMcCKacuuueaQmDRVcFiub0imePfb9IxZdjAJ00fUY6lyR3" });
+
+            if (paymentIntent != null)
+            {
+                var order = await _dbContext.Order.FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntent.Id);
+                if (order != null)
+                {
+                    // Update order status based on Stripe payment status
+                    order.Status = paymentIntent.Status switch
+                    {
+                        "succeeded" => "Succeeded",
+                        "requires_payment_method" => "Failed",
+                        "canceled" => "Canceled",
+                        _ => order.Status // Keep the current status if unknown
+                    };
+
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
         }
 
         [HttpGet("orders")]
@@ -162,6 +193,7 @@ namespace WebApplication1.Controllers
             foreach (var order in orders)
             {
                 CartItem item = await _dbContext.CartItems.FirstOrDefaultAsync(i => i.OrderId == order.Id);
+                if (item == null) continue;
                 var obj = new OrderView(order,item.Image);
                 orderList.Add(obj);
             }
@@ -237,6 +269,12 @@ namespace WebApplication1.Controllers
                 _logger.LogInformation("PaymentIntent failed: {0}", failedPaymentIntent.Id);
                 await UpdateOrderStatus(failedPaymentIntent, "Failed");
             }
+            else if (stripeEvent.Type == "payment_intent.canceled")
+            {
+                var canceledPaymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                _logger.LogInformation("PaymentIntent canceled: {0}", canceledPaymentIntent.Id);
+                await UpdateOrderStatus(canceledPaymentIntent, "Canceled");
+            }
             // Add more event types as needed (e.g., for refunds, cancellations, etc.)
             else
             {
@@ -253,8 +291,16 @@ namespace WebApplication1.Controllers
 
             if (order != null)
             {
-                //order.Status = status;  // Update the order status (e.g., "Succeeded", "Failed", etc.)
+                order.Status = status;  // Update the order status (e.g., "Succeeded", "Failed", etc.)
                 await _dbContext.SaveChangesAsync();
+
+                // Notify the user via SignalR that the order status has been updated
+                var connectionId = NotificationHub.GetConnectionIdByEmail(order.ShippingEmail);
+                if (connectionId != null)
+                {
+                    // Push a notification to the user
+                    await _hubContext.Clients.Client(connectionId).SendAsync("OrderStatusUpdated", order);
+                }
             }
         }
 

@@ -6,6 +6,7 @@ using WebApplication1.Interfaces;
 using WebApplication1.Views;
 using AppContext = WebApplication1.Models.AppContext;
 using Microsoft.AspNetCore.Identity;
+using WebApplication1.SignalR;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,6 +51,8 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddSignalR();
+
 builder.Services.AddAuthorization();
 //Add Identity services
 builder.Services.AddIdentityApiEndpoints<AppUser>()
@@ -69,5 +72,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGroup("api").MapIdentityApi<AppUser>(); // api/login
+app.MapHub<NotificationHub>("/hub/notifications");
 
 app.Run();

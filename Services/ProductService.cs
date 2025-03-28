@@ -19,19 +19,19 @@ namespace WebApplication1.Services
 
             if (!string.IsNullOrWhiteSpace(brands))
             {
-                var brandList = brands.Split(',').Select(b => b.Trim()).ToList();
-                query = query.Where(p => brandList.Contains(p.Brand));
+                var brandList = brands.Split(',').Select(b => b.Trim().ToLower()).ToList();
+                query = query.Where(p => brandList.Contains(p.Brand.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(types))
             {
-                var typeList = types.Split(',').Select(t => t.Trim()).ToList();
-                query = query.Where(p => typeList.Contains(p.Type));
+                var typeList = types.Split(',').Select(t => t.Trim().ToLower()).ToList();
+                query = query.Where(p => typeList.Contains(p.Type.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(p => p.Name.ToLower().Contains(searchTerm));
+                query = query.Where(p => p.Name.ToLower().Contains(searchTerm.ToLower()));
             }
 
             query = sort switch

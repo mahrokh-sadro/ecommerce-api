@@ -1,12 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using WebApplication1.Interfaces;
 using WebApplication1.Models;
 using WebApplication1.Services;
-using WebApplication1.Interfaces;
-using WebApplication1.Views;
-using AppContext = WebApplication1.Models.AppContext;
-using Microsoft.AspNetCore.Identity;
 using WebApplication1.SignalR;
+using AppContext = WebApplication1.Models.AppContext;
 
 
 var builder = WebApplication.CreateBuilder(args);

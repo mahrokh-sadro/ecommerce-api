@@ -25,9 +25,10 @@ namespace WebApplication1.Controllers
         private readonly IProductService _productService;
         private readonly ILogger<PaymentController> _logger;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IConfiguration _config;
 
         public PaymentController(IPaymentService paymentService, ICartService cartService, AppContext dbContext, SignInManager<AppUser> signInManager, IProductService productService,
-            ILogger<PaymentController> logger, IHubContext<NotificationHub> hubContext)
+            ILogger<PaymentController> logger, IHubContext<NotificationHub> hubContext,IConfiguration config)
         {
             _paymentService = paymentService;
             _cartService = cartService;
@@ -36,6 +37,7 @@ namespace WebApplication1.Controllers
             _productService = productService;
             _logger = logger;
             _hubContext = hubContext;
+            _config = config;
         }
 
         // Add or update the payment intent
@@ -115,7 +117,7 @@ namespace WebApplication1.Controllers
                 PaymentSummaryId = payment.Id,
                 Subtotal = subtotal,
                 TaxAmount = taxRate * subtotal,
-                Total = subtotal * (1 + taxRate) - discount,
+                Total = subtotal * (1 + taxRate) - discount + deliveryMethod.ShippingPrice,
                 Discount = discount
             };
 
@@ -147,7 +149,7 @@ namespace WebApplication1.Controllers
 
             var service = new PaymentIntentService();
             var paymentIntent = await service.GetAsync(paymentIntentId, options: null, 
-                requestOptions: new RequestOptions { ApiKey = "sk_test_51R2FT8GfAmxmqqaW6FfZCQQSjfoetCxvm8CYcYaMrOrstSS7W8FsMcCKacuuueaQmDRVcFiub0imePfb9IxZdjAJ00fUY6lyR3" });
+                requestOptions: new RequestOptions { ApiKey = _config["StripeSettings:Secretkey"]! });
 
             if (paymentIntent != null)
             {
@@ -255,8 +257,8 @@ namespace WebApplication1.Controllers
         {
             var json = await new System.IO.StreamReader(Request.Body).ReadToEndAsync();
             var stripeEvent = EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"],
-                "whsec_7c3c41430936344237fb4b64a481b0fa617d600a570a6258d4058cee3b1bb86f");
-            // Handle the event using if-else statements
+                _config["StripeSettings:WhSecret"]!);
+
             if (stripeEvent.Type == "payment_intent.succeeded")
             {
                 var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
@@ -286,21 +288,19 @@ namespace WebApplication1.Controllers
 
         private async Task UpdateOrderStatus(PaymentIntent paymentIntent, string status = "Succeeded")
         {
-            // Find your order using the paymentIntentId (you should have stored this in your order record)
             var order = await _dbContext.Order.FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntent.Id);
 
             if (order != null)
             {
-                order.Status = status;  // Update the order status (e.g., "Succeeded", "Failed", etc.)
+                order.Status = status;  
                 await _dbContext.SaveChangesAsync();
 
-                // Notify the user via SignalR that the order status has been updated
-                var connectionId = NotificationHub.GetConnectionIdByEmail(order.ShippingEmail);
-                if (connectionId != null)
-                {
-                    // Push a notification to the user
-                    await _hubContext.Clients.Client(connectionId).SendAsync("OrderStatusUpdated", order);
-                }
+                //var connectionId = NotificationHub.GetConnectionIdByEmail(order.ShippingEmail);
+                //if (connectionId != null)
+                //{
+                //    // Push a notification to the user
+                //    await _hubContext.Clients.Client(connectionId).SendAsync("OrderStatusUpdated", order);
+                //}
             }
         }
 
@@ -309,7 +309,7 @@ namespace WebApplication1.Controllers
             var json = await new System.IO.StreamReader(Request.Body).ReadToEndAsync();
             var stripeSignature = Request.Headers["Stripe-Signature"];
 
-            var secret = "whsec_7c3c41430936344237fb4b64a481b0fa617d600a570a6258d4058cee3b1bb86f"; // Your secret from Stripe Dashboard
+            var secret = _config["StripeSettings:WhSecret"]!;
 
             try
             {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using WebApplication1.Interfaces;
 using WebApplication1.Models;
 using WebApplication1.Views;
 
@@ -19,12 +20,15 @@ namespace WebApplication1.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly AppContext _dbContext;
+        private readonly IAdminService _adminService;
 
-        public UserController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, AppContext dbContext)
+       public UserController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
+            AppContext dbContext, IAdminService adminService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _dbContext = dbContext;
+            _adminService= adminService;
         }
 
         [HttpPost("register")]
@@ -151,24 +155,17 @@ namespace WebApplication1.Controllers
             if (User.Identity?.IsAuthenticated == false)
                 return NoContent();
 
-            // Retrieve the email of the authenticated user from claims
             var email = User.FindFirstValue(ClaimTypes.Email);
 
             if (string.IsNullOrEmpty(email))
                 return NotFound("User email not found in claims.");
 
-            // Fetch user by email
-            //var user = await _signInManager.UserManager.FindByEmailAsync(email);
-            // Fetch user by email, including the Address
             var user = await _signInManager.UserManager.Users
-                .Include(u => u.Address)  // Ensure Address is loaded
+                .Include(u => u.Address)  
                 .FirstOrDefaultAsync(u => u.Email == email);
-
 
             if (user == null)
                 return NotFound("User not found.");
-
-            //var role = User.FindFirstValue(ClaimTypes.Role);
 
             return Ok(new
             {
@@ -187,6 +184,33 @@ namespace WebApplication1.Controllers
             return Ok(User.Identity?.IsAuthenticated ?? false);
         }
 
+        [HttpPost("refund/{orderId}")]
+        public async Task<IActionResult> RefundPaymentAsync(int orderId)
+        {
+            try
+            {
+                if (User.Identity?.IsAuthenticated == false)
+                    return NoContent();
 
+                var email = User.FindFirstValue(ClaimTypes.Email);
+
+                if (string.IsNullOrEmpty(email))
+                    return NotFound("User email not found in claims.");
+
+                var user = await _signInManager.UserManager.Users
+                    .Include(u => u.Address)
+                    .FirstOrDefaultAsync(u => u.Email == email);
+
+                if (user == null)
+                    return NotFound("User not found.");
+
+                var refund = await _adminService.RefundPaymentAsync(orderId);
+                return Ok(new { message = "Refund successful", refundId = refund.Id });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "AdminController->refund" + e);
+            }
+        }
     }
 }

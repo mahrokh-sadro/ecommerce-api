@@ -1,9 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
+using System.Security.Claims;
 using WebApplication1.Interfaces;
 using WebApplication1.Models;
 using WebApplication1.Views;
 using AppContext = WebApplication1.Models.AppContext;
+
 
 namespace WebApplication1.Services
 {
@@ -12,10 +16,12 @@ namespace WebApplication1.Services
         private readonly IConfiguration _config;
         private readonly ICartService _cartService;
         private readonly IProductService _productService;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
 
         private readonly AppContext _dbContext;
 
-        public PaymentService(IConfiguration config, ICartService cartService, AppContext dbContext,
+        public PaymentService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration config, ICartService cartService, AppContext dbContext,
             IProductService productService
             )
         {
@@ -24,6 +30,8 @@ namespace WebApplication1.Services
             _dbContext= dbContext;
             _productService = productService;
             StripeConfiguration.ApiKey = _config["StripeSettings:Secretkey"];
+            _userManager = userManager;
+            _signInManager = signInManager;
 
         }
         //set delivery type
@@ -88,8 +96,6 @@ namespace WebApplication1.Services
         {
             return await _dbContext.DeliveryMethods.OrderBy(m=>m.ShippingPrice).ToListAsync();
         }
-
-
 
     }
 }

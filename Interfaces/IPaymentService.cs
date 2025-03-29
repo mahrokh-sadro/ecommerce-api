@@ -1,4 +1,5 @@
-﻿using WebApplication1.Models;
+﻿using Stripe;
+using WebApplication1.Models;
 using WebApplication1.Views;
 
 namespace WebApplication1.Interfaces
